@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      claim_history: {
+        Row: {
+          claim_text: string | null
+          counter_narrative: string | null
+          created_at: string
+          evidence: Json | null
+          id: string
+          media_type: string | null
+          reasoning: string | null
+          risk_severity: number | null
+          user_id: string
+          verdict: string | null
+        }
+        Insert: {
+          claim_text?: string | null
+          counter_narrative?: string | null
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          media_type?: string | null
+          reasoning?: string | null
+          risk_severity?: number | null
+          user_id: string
+          verdict?: string | null
+        }
+        Update: {
+          claim_text?: string | null
+          counter_narrative?: string | null
+          created_at?: string
+          evidence?: Json | null
+          id?: string
+          media_type?: string | null
+          reasoning?: string | null
+          risk_severity?: number | null
+          user_id?: string
+          verdict?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
