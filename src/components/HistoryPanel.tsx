@@ -45,7 +45,10 @@ const HistoryPanel = ({ isOpen, onClose }: HistoryPanelProps) => {
       .select("id, claim_text, media_type, verdict, risk_severity, created_at")
       .order("created_at", { ascending: false })
       .limit(50)
-      .then(({ data }) => {
+      .then(({ data, error }) => {
+        if (error) {
+          console.error("Error fetching history:", error.message);
+        }
         setItems((data as HistoryItem[]) || []);
         setLoading(false);
       });

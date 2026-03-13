@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { User } from "@supabase/supabase-js";
 import { LogIn, LogOut, User as UserIcon, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -27,8 +26,14 @@ const AuthHeader = ({ onShowHistory }: AuthHeaderProps) => {
   }, []);
 
   const signIn = async () => {
-    await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+        queryParams: {
+          prompt: "select_account",
+        },
+      },
     });
   };
 

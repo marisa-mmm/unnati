@@ -1,6 +1,6 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Search, Loader2, Image, Video, X, Upload } from "lucide-react";
+import { Search, Loader2, Image, Video, X, Upload, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -13,7 +13,50 @@ const ClaimInput = ({ onSubmit, isLoading }: ClaimInputProps) => {
   const [claim, setClaim] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [speechLang, setSpeechLang] = useState("en-US");
+  const recognitionRef = useRef<any>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // @ts-ignore
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = true;
+      recognitionRef.current.interimResults = true;
+
+      recognitionRef.current.onresult = (event: any) => {
+        let newFinalStr = "";
+        for (let i = event.resultIndex; i < event.results.length; ++i) {
+          if (event.results[i].isFinal) {
+            newFinalStr += event.results[i][0].transcript + " ";
+          }
+        }
+        if (newFinalStr.trim()) {
+          setClaim((prev) => (prev + " " + newFinalStr.trim()).trim());
+        }
+      };
+
+      recognitionRef.current.onerror = () => setIsListening(false);
+      recognitionRef.current.onend = () => setIsListening(false);
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (isListening) {
+      recognitionRef.current?.stop();
+      setIsListening(false);
+    } else {
+      if (recognitionRef.current) {
+        recognitionRef.current.lang = speechLang;
+        recognitionRef.current.start();
+        setIsListening(true);
+      } else {
+        alert("Speech recognition is not supported in your browser.");
+      }
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,41 +133,71 @@ const ClaimInput = ({ onSubmit, isLoading }: ClaimInputProps) => {
           </motion.div>
         )}
 
-        <div className="flex items-center justify-center gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*,video/*"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,video/*"
+              onChange={handleFileSelect}
+              className="hidden"
+            />
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            className="border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
-            disabled={isLoading}
-          >
-            <Image className="w-4 h-4 mr-2" />
-            Image
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className="border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
+              disabled={isLoading}
+            >
+              <Image className="w-4 h-4 mr-2" />
+              Image
+            </Button>
 
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => fileInputRef.current?.click()}
-            className="border-border text-muted-foreground hover:text-foreground hover:border-primary/50"
-            disabled={isLoading}
-          >
-            <Video className="w-4 h-4 mr-2" />
-            Video
-          </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className="border-border text-muted-foreground hover:text-foreground hover:border-primary/50 hidden sm:flex"
+              disabled={isLoading}
+            >
+              <Video className="w-4 h-4 mr-2" />
+              Video
+            </Button>
+
+            <div className="flex items-center ml-2 border border-border rounded-md px-1 bg-card">
+              <select 
+                value={speechLang}
+                onChange={(e) => setSpeechLang(e.target.value)}
+                className="bg-transparent text-muted-foreground text-xs p-2 outline-none cursor-pointer"
+                disabled={isListening}
+              >
+                <option value="en-US">EN</option>
+                <option value="hi-IN">HI</option>
+                <option value="mr-IN">MR</option>
+                <option value="bn-IN">BN</option>
+                <option value="te-IN">TE</option>
+                <option value="ta-IN">TA</option>
+                <option value="gu-IN">GU</option>
+                <option value="kn-IN">KN</option>
+                <option value="es-ES">ES</option>
+                <option value="fr-FR">FR</option>
+              </select>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={toggleListening}
+                className={`h-8 px-2 ${isListening ? 'text-destructive animate-pulse' : 'text-primary'}`}
+              >
+                {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+              </Button>
+            </div>
+          </div>
 
           <Button
             type="submit"
             disabled={(!claim.trim() && !mediaFile) || isLoading}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 font-display font-semibold px-8 py-3 text-base rounded-xl transition-all glow-true"
+            className="bg-primary text-primary-foreground hover:bg-primary/90 font-display font-semibold px-8 py-3 w-full sm:w-auto text-base rounded-xl transition-all glow-true"
           >
             {isLoading ? (
               <>
