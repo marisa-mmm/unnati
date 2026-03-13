@@ -47,6 +47,12 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        verdict: {
+          true: "hsl(var(--verdict-true))",
+          false: "hsl(var(--verdict-false))",
+          misleading: "hsl(var(--verdict-misleading))",
+          unverified: "hsl(var(--verdict-unverified))",
+        },
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
