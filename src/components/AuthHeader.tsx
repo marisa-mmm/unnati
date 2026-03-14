@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { LogIn, LogOut, User as UserIcon, History } from "lucide-react";
+import { LogIn, LogOut, User as UserIcon, History, FileSignature } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,9 +12,10 @@ import {
 
 interface AuthHeaderProps {
   onShowHistory: () => void;
+  onShowAudit: () => void;
 }
 
-const AuthHeader = ({ onShowHistory }: AuthHeaderProps) => {
+const AuthHeader = ({ onShowHistory, onShowAudit }: AuthHeaderProps) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -43,7 +44,17 @@ const AuthHeader = ({ onShowHistory }: AuthHeaderProps) => {
   };
 
   return (
-    <div className="absolute top-4 right-4 z-20 flex items-center gap-2">
+    <div className="absolute top-4 right-4 z-20 flex items-center gap-3">
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={onShowAudit}
+        className="border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary gap-2 font-semibold"
+      >
+        <FileSignature className="w-4 h-4" />
+        Audit Log
+      </Button>
+
       {user ? (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

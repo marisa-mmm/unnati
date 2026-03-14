@@ -109,7 +109,7 @@
   }
 
   .bg-glitch-effect {
-    animation: glitch 0.2s linear infinite;
+    animation: glitch 0.2s linear 15;
   }
 
   @keyframes glitch {
@@ -120,4 +120,27 @@
     80% { transform: translate(2px, -2px) }
     100% { transform: translate(0) }
   }
+}
+
+/* --- Google Translate Deep Integrations --- */
+/* Completely overrides Google Translate forced wrappers and headers */
+body {
+  top: 0 !important;
+}
+
+iframe.skiptranslate,
+.goog-te-banner-frame.skiptranslate,
+#goog-gt-tt,
+.goog-te-balloon-frame {
+  display: none !important;
+}
+
+font {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.goog-text-highlight {
+  background-color: transparent !important;
+  box-shadow: none !important;
 }
