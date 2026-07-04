@@ -4,24 +4,35 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UNNATI — Guardian of Truth | AI Misinformation Detection</title>
-    <meta name="description" content="UNNATI is an AI-powered misinformation detection system that fact-checks claims in real-time with evidence-based analysis and multi-source verification." />
-    <meta name="author" content="UNNATI" />
-
-    <meta property="og:title" content="UNNATI — Guardian of Truth" />
-    <meta property="og:description" content="AI Misinformation Detection" />
+    <title>VibeLock AI — The World's First AI Music Assistant</title>
+    <meta name="description" content="VibeLock AI finds any song even if you don't know its name. Search by lyrics, hum a melody, use voice, or describe your mood. AI-powered music intelligence." />
+    <meta name="author" content="VibeLock AI" />
+    <meta property="og:title" content="VibeLock AI — Find Any Song With AI" />
+    <meta property="og:description" content="Hum a melody, type lyrics, or describe your mood. VibeLock AI instantly finds the perfect song." />
     <meta property="og:type" content="website" />
-
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="UNNATI — Guardian of Truth" />
-    <meta name="twitter:description" content="AI Misinformation Detection" />
-    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <meta name="twitter:title" content="VibeLock AI" />
+    <meta name="twitter:description" content="The World's First AI Music Intelligence Assistant" />
+    <!-- Google Fonts: Plus Jakarta Sans + Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
   </head>
 
   <body>
     <div id="root"></div>
     <div id="google_translate_element" style="display: none;"></div>
     <script type="text/javascript">
+      // Clear Google Translate cookie on page load so it always starts in English
+      (function() {
+        var cookiesToClear = ['googtrans'];
+        cookiesToClear.forEach(function(name) {
+          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=' + location.hostname;
+          document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.' + location.hostname;
+        });
+      })();
+
       function googleTranslateElementInit() {
         new google.translate.TranslateElement({
           pageLanguage: 'en',

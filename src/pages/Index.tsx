@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { Activity, ShieldAlert, Fingerprint, BrainCircuit, ScanFace, ChevronRight, ChevronDown } from "lucide-react";
+// Supabase removed — using localStorage for history
 import HeroSection from "@/components/HeroSection";
 import ClaimInput from "@/components/ClaimInput";
 import TruthReport, { TruthReportData } from "@/components/TruthReport";
@@ -13,6 +14,10 @@ import IDVerifier from "@/components/IDVerifier";
 import LiveFeed from "@/components/LiveFeed";
 import AuditLogPanel from "@/components/AuditLogPanel";
 import { toast } from "sonner";
+import DeepfakeForensics from "@/components/DeepfakeForensics";
+import NarrativeInoculation from "@/components/NarrativeInoculation";
+import PatientZeroTracker from "@/components/PatientZeroTracker";
+import ExplainableAI from "@/components/ExplainableAI";
 
 import { GlobalRumorsTicker } from "@/components/GlobalRumorsTicker";
 
@@ -40,6 +45,10 @@ const Index = () => {
   const [showTimeline, setShowTimeline] = useState(false);
   const [timelineSteps, setTimelineSteps] = useState<TraceStep[]>(initialSteps);
   const [viralityScore, setViralityScore] = useState(0);
+
+  const [activeTool, setActiveTool] = useState<"home" | "deepfake" | "narrative" | "patient_zero" | "explainable_ai" | "id_verifier">("home");
+  const [isLiveFeedOpen, setIsLiveFeedOpen] = useState(false);
+  const [isControlHubOpen, setIsControlHubOpen] = useState(false);
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -159,6 +168,7 @@ const Index = () => {
     setShowDebate(false);
     setShowTimeline(false);
     setViralityScore(0);
+    setActiveTool("home");
 
     try {
       let mediaBase64: string | undefined;
@@ -494,28 +504,20 @@ Analyze this input: "${claim}"`;
         return next;
       });
 
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (user) {
-        const { error: insertError } = await supabase.from("claim_history").insert({
-          user_id: user.id,
-          claim_text: claim || null,
+      // Save to localStorage history
+      try {
+        const existing = JSON.parse(localStorage.getItem("unnati_history") || "[]");
+        const histItem = {
+          id: crypto.randomUUID(),
+          claim_text: claim || "Media analysis",
           media_type: mediaType || "text",
           verdict: reportData.verdict,
           risk_severity: reportData.riskSeverity,
-          evidence: reportData.evidence,
-          reasoning: reportData.reasoning,
-          counter_narrative: reportData.counterNarrative,
-        });
-
-        if (insertError) {
-          console.error("Failed to save to history:", insertError);
-          toast.error("Analysis complete, but failed to save to your history: " + insertError.message);
-        } else {
-          toast.success("Saved to your history");
-        }
+          created_at: new Date().toISOString(),
+        };
+        localStorage.setItem("unnati_history", JSON.stringify([histItem, ...existing].slice(0, 50)));
+      } catch (e) {
+        console.warn("Could not save history", e);
       }
     } catch (error: any) {
       console.error("Fact-check error:", error);
@@ -542,50 +544,168 @@ Analyze this input: "${claim}"`;
   };
 
   return (
-    <div className="min-h-screen bg-transparent relative z-10 transition-colors duration-500">
+    <div className="min-h-screen relative z-10 transition-colors duration-500" style={{ background: 'radial-gradient(ellipse at 20% 0%, rgba(0,255,255,0.05) 0%, transparent 50%), radial-gradient(ellipse at 80% 10%, rgba(139,92,246,0.05) 0%, transparent 40%), hsl(225, 44%, 5%)' }}>
       <ViralityEngine riskScore={viralityScore} />
 
       <AuthHeader 
         onShowHistory={() => setHistoryOpen(true)} 
         onShowAudit={() => setAuditOpen(true)} 
       />
-      <div className="pt-20">
+      <div className="pt-[72px]">
         <GlobalRumorsTicker />
       </div>
       <HeroSection />
 
-      <div className="space-y-12 pb-20 px-4 md:px-0">
-        <ClaimInput onSubmit={handleClaimSubmit} isLoading={isLoading} />
-
-        <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-          <TrendingFeed />
+      <div className="max-w-[1200px] mx-auto pb-20 px-4 md:px-6">
+        
+        {/* Full-width Prompt / Claim Input */}
+        <div className="w-full mb-10">
+          <ClaimInput onSubmit={handleClaimSubmit} isLoading={isLoading} />
         </div>
 
-        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <IDVerifier />
+        {/* ══ CONTROL HUB PANELS ROW ══ */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-12">
+          
+          {/* Live Flagged Claims Dropdown */}
+          <div className="rounded-2xl border border-white/8 glass-card shadow-xl overflow-hidden flex flex-col h-fit hover:border-red-500/20 transition-all duration-300 group">
+            <button 
+              onClick={() => { setIsLiveFeedOpen(!isLiveFeedOpen); setIsControlHubOpen(false); }}
+              className="w-full px-6 py-5 flex items-center justify-between hover:bg-white/3 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <div className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 shadow-[0_0_8px_2px_rgba(239,68,68,0.5)]"></span>
+                </div>
+                <h3 className="font-display font-bold text-lg text-foreground group-hover:text-red-300 transition-colors">Live Flagged Claims</h3>
+                <span className="px-2 py-0.5 text-[10px] font-code font-bold uppercase tracking-wider text-red-400 bg-red-500/10 border border-red-500/20 rounded-full">LIVE</span>
+              </div>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isLiveFeedOpen ? "rotate-180 text-red-400" : ""}`} />
+            </button>
+            
+            {isLiveFeedOpen && (
+              <div className="border-t border-white/5 bg-black/30 p-4 max-h-[600px] overflow-y-auto custom-scrollbar animate-in fade-in slide-in-from-top-4">
+                <LiveFeed />
+              </div>
+            )}
+          </div>
+
+          {/* UNNATI Control Hub Dropdown */}
+          <div className="rounded-2xl border border-white/8 glass-card shadow-xl overflow-hidden flex flex-col h-fit hover:border-cyan-500/20 transition-all duration-300 group">
+            <button 
+              onClick={() => { setIsControlHubOpen(!isControlHubOpen); setIsLiveFeedOpen(false); }}
+              className="w-full px-6 py-5 flex items-center justify-between hover:bg-white/3 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_8px_2px_rgba(0,255,255,0.5)]"></span>
+                </span>
+                <h3 className="font-display font-bold text-lg text-foreground group-hover:text-cyan-300 transition-colors">UNNATI Control Hub</h3>
+                <span className="px-2 py-0.5 text-[10px] font-code font-bold uppercase tracking-wider text-cyan-400 bg-cyan-500/10 border border-cyan-500/20 rounded-full">6 TOOLS</span>
+                {activeTool !== "home" && (
+                  <span className="px-2 py-0.5 text-[10px] font-code font-bold uppercase tracking-wider text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 rounded-full animate-pulse">ACTIVE</span>
+                )}
+              </div>
+              <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform duration-300 ${isControlHubOpen ? "rotate-180 text-cyan-400" : ""}`} />
+            </button>
+
+            {isControlHubOpen && (
+              <div className="border-t border-white/5 bg-black/30 animate-in fade-in slide-in-from-top-4">
+                {/* Tool selector list */}
+                <div className="p-4 space-y-2">
+                  <p className="text-[11px] text-muted-foreground px-2 pb-2 font-code">↳ Select a forensic engine to activate</p>
+                  
+                  {([
+                    { key: "home", icon: Activity, label: "Home Dashboard", desc: "Return to trending view", color: "cyan" },
+                    { key: "deepfake", icon: ScanFace, label: "Deepfake Forensics", desc: "Multi-modal vision & audio", color: "teal" },
+                    { key: "narrative", icon: ShieldAlert, label: "Narrative Inoculation", desc: "Pre-bunking & bot tracking", color: "amber" },
+                    { key: "patient_zero", icon: Activity, label: "Patient Zero Tracker", desc: "Trace claims to origin", color: "blue" },
+                    { key: "explainable_ai", icon: BrainCircuit, label: "Explainable AI Logic", desc: "Show reasoning chain", color: "purple" },
+                    { key: "id_verifier", icon: Fingerprint, label: "ID Document Verifier", desc: "Govt ID authentication", color: "emerald" },
+                  ] as const).map(({ key, icon: Icon, label, desc, color }) => {
+                    const isActive = activeTool === key;
+                    const colorMap: Record<string, { active: string; base: string; hover: string; glow: string }> = {
+                      cyan:    { active: "text-cyan-400 border-cyan-500/50 bg-cyan-500/15",    base: "border-border bg-card/60",        hover: "group-hover:text-cyan-400 hover:border-cyan-500/30 hover:bg-cyan-500/5",    glow: "shadow-[0_4px_20px_rgba(0,255,255,0.15)]" },
+                      teal:    { active: "text-teal-400 border-teal-500/50 bg-teal-500/15",    base: "border-border bg-card/60",        hover: "group-hover:text-teal-400 hover:border-teal-500/30 hover:bg-teal-500/5",    glow: "shadow-[0_4px_20px_rgba(20,184,166,0.15)]" },
+                      amber:   { active: "text-amber-400 border-amber-500/50 bg-amber-500/15", base: "border-border bg-card/60",        hover: "group-hover:text-amber-400 hover:border-amber-500/30 hover:bg-amber-500/5", glow: "shadow-[0_4px_20px_rgba(251,191,36,0.15)]" },
+                      blue:    { active: "text-blue-400 border-blue-500/50 bg-blue-500/15",    base: "border-border bg-card/60",        hover: "group-hover:text-blue-400 hover:border-blue-500/30 hover:bg-blue-500/5",    glow: "shadow-[0_4px_20px_rgba(59,130,246,0.15)]" },
+                      purple:  { active: "text-purple-400 border-purple-500/50 bg-purple-500/15", base: "border-border bg-card/60",     hover: "group-hover:text-purple-400 hover:border-purple-500/30 hover:bg-purple-500/5", glow: "shadow-[0_4px_20px_rgba(168,85,247,0.15)]" },
+                      emerald: { active: "text-emerald-400 border-emerald-500/50 bg-emerald-500/15", base: "border-border bg-card/60", hover: "group-hover:text-emerald-400 hover:border-emerald-500/30 hover:bg-emerald-500/5", glow: "shadow-[0_4px_20px_rgba(52,211,153,0.15)]" },
+                    };
+                    const c = colorMap[color];
+                    return (
+                      <button
+                        key={key}
+                        onClick={() => setActiveTool(key as any)}
+                        className={`w-full text-left p-3.5 rounded-xl flex items-center justify-between group transition-all duration-200 border ${
+                          isActive ? `${c.active} ${c.glow}` : `${c.base} ${c.hover}`
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+                            isActive ? c.active.split(" ")[0].replace("text-", "bg-").replace("-400", "-500/20") : "bg-muted/40"
+                          }`}>
+                            <Icon className={`w-4 h-4 transition-colors ${isActive ? c.active.split(" ")[0] : "text-muted-foreground group-hover:" + c.active.split(" ")[0]}`} />
+                          </div>
+                          <div>
+                            <h4 className={`font-bold text-sm transition-colors ${isActive ? c.active.split(" ")[0] : "text-foreground"}`}>{label}</h4>
+                            <p className="text-[11px] text-muted-foreground">{desc}</p>
+                          </div>
+                        </div>
+                        <ChevronRight className={`w-4 h-4 transition-all ${isActive ? `${c.active.split(" ")[0]} translate-x-1` : "text-muted-foreground/50"}`} />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* ── Active Tool renders INSIDE the hub ── */}
+                {activeTool !== "home" && !report && !showDebate && !showTimeline && (
+                  <div className="border-t border-white/8 bg-black/20 animate-in fade-in slide-in-from-top-4 duration-300">
+                    <div className="p-1">
+                      {activeTool === "deepfake" && <DeepfakeForensics />}
+                      {activeTool === "narrative" && <NarrativeInoculation />}
+                      {activeTool === "patient_zero" && <PatientZeroTracker />}
+                      {activeTool === "explainable_ai" && <ExplainableAI />}
+                      {activeTool === "id_verifier" && <IDVerifier />}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-          <LiveFeed />
+        {/* Dynamic Center Stage Area */}
+        <div className="w-full flex justify-center">
+          <div className="w-full">
+            {showTimeline && (
+              <div id="analysis-timeline" className="animate-in fade-in slide-in-from-bottom-8 duration-500 pt-2 pb-8">
+                <TraceTimeline steps={timelineSteps} />
+              </div>
+            )}
+
+            {showDebate && !report && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 pb-8">
+                <DebateLog messages={liveLogs} />
+              </div>
+            )}
+
+            {report && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-500 pb-8">
+                <TruthReport report={report} onQuestionClick={handleQuestionClick} />
+              </div>
+            )}
+
+            {/* Trending Now is strictly placed in the middle component space */}
+            {!report && !showDebate && !showTimeline && activeTool === "home" && (
+              <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+                <TrendingFeed />
+              </div>
+            )}
+          </div>
         </div>
 
-        {showTimeline && (
-          <div id="analysis-timeline" className="animate-in fade-in slide-in-from-bottom-8 duration-500 pt-8 mt-[-2rem]">
-            <TraceTimeline steps={timelineSteps} />
-          </div>
-        )}
-
-        {showDebate && !report && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <DebateLog messages={liveLogs} />
-          </div>
-        )}
-
-        {report && (
-          <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
-            <TruthReport report={report} onQuestionClick={handleQuestionClick} />
-          </div>
-        )}
       </div>
 
       <HistoryPanel isOpen={historyOpen} onClose={() => setHistoryOpen(false)} />
