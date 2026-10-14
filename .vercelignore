@@ -1,6 +1,0 @@
-backend/
-.git/
-bun.lock
-bun.lockb
-*.log
-node_modules/
