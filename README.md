@@ -9,6 +9,9 @@
 [![Google Gemini](https://img.shields.io/badge/Gemini-2.5_Flash-4285F4?style=flat&logo=google&logoColor=white)](https://ai.google.dev/)
 [![Tavily](https://img.shields.io/badge/Search-Tavily_AI-FF6B6B?style=flat)](https://tavily.com/)
 [![Vitest](https://img.shields.io/badge/Tested_with-Vitest-729B1B?style=flat&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Live Deployment](https://img.shields.io/badge/Live_Site-GitHub_Pages-success?style=for-the-badge&logo=github)](https://marisa-mmm.github.io/unnati/)
+
+🌐 **Live Production Deployment**: [https://marisa-mmm.github.io/unnati/](https://marisa-mmm.github.io/unnati/)
 
 ---
 
